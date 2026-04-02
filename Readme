@@ -1,0 +1,113 @@
+# FaceTrack — Facial Recognition Attendance System
+
+## Project Structure
+
+```
+attendance-system/
+├── backend/
+│   ├── main.py            ← FastAPI backend (REST API + SQLite)
+│   └── requirements.txt
+├── scripts/
+│   └── face_engine.py     ← Face enrollment + recognition engine
+└── frontend/
+    ├── src/
+    │   ├── App.jsx
+    │   ├── index.css
+    │   └── pages/
+    │       ├── Dashboard.jsx   ← Live overview + charts
+    │       ├── Attendance.jsx  ← Log with filters + CSV export
+    │       └── Enroll.jsx      ← Add/remove users
+    ├── package.json
+    └── vite.config.js
+```
+
+---
+
+## 1. Backend (FastAPI)
+
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+```
+
+API docs available at: http://localhost:8000/docs
+
+---
+
+## 2. Face Engine (Python)
+
+### Install dependencies
+```bash
+# On macOS/Linux:
+pip install face_recognition opencv-python numpy requests
+
+# On Windows — install dlib first via wheel:
+# https://github.com/z-mahmud22/Dlib_Windows_Python3.x
+pip install dlib-<version>-cp311-cp311-win_amd64.whl
+pip install face_recognition opencv-python numpy requests
+```
+
+### Enroll someone from a photo
+```bash
+python scripts/face_engine.py enroll --name "Alice" --image path/to/alice.jpg
+```
+
+### Enroll from webcam (interactive)
+```bash
+python scripts/face_engine.py enroll --name "Alice"
+# Press SPACE to capture samples, Q when done
+```
+
+### Start live recognition
+```bash
+python scripts/face_engine.py recognize
+# Or headless (no display window — for servers):
+python scripts/face_engine.py recognize --headless
+```
+
+### List / remove enrolled people
+```bash
+python scripts/face_engine.py list
+python scripts/face_engine.py delete --name "Alice"
+```
+
+---
+
+## 3. Frontend (React + Vite)
+
+```bash
+cd frontend
+npm install
+npm run dev
+# Open http://localhost:5173
+```
+
+---
+
+## Typical workflow
+
+1. Start backend:         `uvicorn main:app --reload`
+2. Enroll people:         `python face_engine.py enroll --name "..."`
+3. Start recognition:     `python face_engine.py recognize`
+4. View dashboard:        `npm run dev` → http://localhost:5173
+
+---
+
+## Environment variables
+
+| Variable       | Default                      | Description            |
+|----------------|------------------------------|------------------------|
+| `DATABASE_URL` | `sqlite:///./attendance.db`  | SQLAlchemy DB URL      |
+| `BACKEND_URL`  | `http://localhost:8000`      | Used by face_engine.py |
+
+---
+
+## Add-on features (next steps)
+
+- **Anti-spoofing**: integrate `Silent-Face-Anti-Spoofing` model
+- **Late alerts**: add email via `fastapi-mail` + schedule cron
+- **Multi-camera**: pass `--camera 1`, `--camera 2` etc.
+- **Role auth**: add JWT with `python-jose` + `passlib`
+- **Analytics**: add recharts to Dashboard for trend graphs
+- **Mobile**: the frontend is responsive — just open on phone
